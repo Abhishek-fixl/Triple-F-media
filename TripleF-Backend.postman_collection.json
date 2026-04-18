@@ -1,0 +1,1260 @@
+{
+  "info": {
+    "name": "Triple F Backend",
+    "_postman_id": "5eb7ef4f-5849-41fd-904f-c13e4c3b8d45",
+    "description": "Postman collection for Triple F Media backend. Uses collection variables for base URLs, ids, and tokens.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:5000" },
+    { "key": "api_url", "value": "http://localhost:5000/api" },
+    { "key": "admin_email", "value": "admin@triplef.com" },
+    { "key": "admin_password", "value": "Admin@123" },
+    { "key": "campaign_manager_email", "value": "campaign.manager@triplef.com" },
+    { "key": "campaign_manager_password", "value": "Manager@123" },
+    { "key": "finance_manager_email", "value": "finance.manager@triplef.com" },
+    { "key": "finance_manager_password", "value": "Finance@123" },
+    { "key": "onboarding_email", "value": "onboarding.specialist@triplef.com" },
+    { "key": "onboarding_password", "value": "Onboard@123" },
+    { "key": "admin_token", "value": "" },
+    { "key": "brand_token", "value": "" },
+    { "key": "creator_token", "value": "" },
+    { "key": "application_id", "value": "" },
+    { "key": "creator_id", "value": "" },
+    { "key": "brand_lead_id", "value": "" },
+    { "key": "campaign_id", "value": "" },
+    { "key": "assignment_id", "value": "" },
+    { "key": "payment_id", "value": "" },
+    { "key": "lead_id", "value": "" },
+    { "key": "user_id", "value": "" },
+    { "key": "notification_id", "value": "" },
+    { "key": "file_public_id", "value": "" },
+    { "key": "chat_session_id", "value": "session_postman_demo" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{api_url}}/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Chat",
+      "item": [
+        {
+          "name": "POST Send Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Hi, I have 6k followers on Instagram. Can I join?\",\n  \"sessionId\": \"{{chat_session_id}}\",\n  \"userType\": \"creator\",\n  \"conversationHistory\": []\n}"
+            },
+            "url": "{{api_url}}/chat/send"
+          }
+        },
+        {
+          "name": "POST Capture Lead",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sessionId\": \"{{chat_session_id}}\",\n  \"name\": \"Chat User\",\n  \"email\": \"chat.user@example.com\",\n  \"whatsapp\": \"+919999999900\",\n  \"userType\": \"creator\",\n  \"notes\": \"Interested after chat\"\n}"
+            },
+            "url": "{{api_url}}/chat/capture-lead"
+          }
+        },
+        {
+          "name": "GET Chat History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{api_url}}/chat/history/{{chat_session_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Auth",
+      "item": [
+        {
+          "name": "POST Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{admin_email}}\",\n  \"password\": \"{{admin_password}}\"\n}"
+            },
+            "url": "{{api_url}}/auth/login"
+          }
+        },
+        {
+          "name": "POST Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": "{{api_url}}/auth/logout"
+          }
+        },
+        {
+          "name": "GET Me",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{api_url}}/auth/me"
+          }
+        },
+        {
+          "name": "POST Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"Admin@123\",\n  \"newPassword\": \"Admin@456\"\n}"
+            },
+            "url": "{{api_url}}/auth/change-password"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Public Creator",
+      "item": [
+        {
+          "name": "POST Apply",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Aisha Khan\",\n  \"age\": 24,\n  \"city\": \"Mumbai\",\n  \"platform\": \"instagram\",\n  \"followers\": \"10k-50k\",\n  \"niche\": \"beauty\",\n  \"profileLink\": \"https://instagram.com/aisha\",\n  \"whatsapp\": \"+919530237366\",\n  \"email\": \"aisha@gmail.com\",\n  \"referral\": \"friend\"\n}"
+            },
+            "url": "{{api_url}}/creators/apply"
+          }
+        },
+        {
+          "name": "GET Calculator",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{api_url}}/creators/calculator?platform=instagram&followers=25000&niche=beauty&frequency=3-4x/week&engagement=good&city=Mumbai&email=lead@example.com"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Public Brand",
+      "item": [
+        {
+          "name": "POST Submit Brief",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"brandName\": \"Glow Beauty\",\n  \"contactName\": \"Priya Sharma\",\n  \"email\": \"priya@glowbeauty.com\",\n  \"phone\": \"+919876543210\",\n  \"campaignGoal\": \"awareness\",\n  \"targetAudience\": \"Women 18-35, beauty enthusiasts\",\n  \"budget\": \"1l-5l\",\n  \"timeline\": \"Q2 2026\",\n  \"notes\": \"Want to promote new skincare line\"\n}"
+            },
+            "url": "{{api_url}}/brands/submit-brief"
+          }
+        },
+        {
+          "name": "POST Brief Alias",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"brandName\": \"Glow Beauty\",\n  \"contactName\": \"Priya Sharma\",\n  \"email\": \"priya@glowbeauty.com\",\n  \"phone\": \"+919876543210\",\n  \"campaignGoal\": \"awareness\",\n  \"targetAudience\": \"Women 18-35, beauty enthusiasts\",\n  \"budget\": \"1l-5l\",\n  \"timeline\": \"Q2 2026\",\n  \"notes\": \"Want to promote new skincare line\"\n}"
+            },
+            "url": "{{api_url}}/brands/brief"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Dashboard",
+      "item": [
+        {
+          "name": "GET Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{api_url}}/admin/dashboard"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Applications",
+      "item": [
+        {
+          "name": "GET List",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{api_url}}/admin/applications?status=pending&page=1&limit=10"
+          }
+        },
+        {
+          "name": "GET Single",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{api_url}}/admin/applications/{{application_id}}"
+          }
+        },
+        {
+          "name": "POST Approve",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"handle\": \"aishakhan\",\n  \"engagementRate\": 4.8,\n  \"upiId\": \"aisha@upi\",\n  \"panNumber\": \"ABCDE1234F\",\n  \"tags\": [\"beauty\", \"priority\"],\n  \"internalNotes\": \"Strong metro creator\"\n}"
+            },
+            "url": "{{api_url}}/admin/applications/{{application_id}}/approve"
+          }
+        },
+        {
+          "name": "POST Reject",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rejectionReason\": \"Current campaign fit is limited\",\n  \"internalNotes\": \"Revisit after audience update\"\n}"
+            },
+            "url": "{{api_url}}/admin/applications/{{application_id}}/reject"
+          }
+        },
+        {
+          "name": "POST Bulk Approve",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"applicationIds\": [\"{{application_id}}\"]\n}"
+            },
+            "url": "{{api_url}}/admin/applications/bulk-approve"
+          }
+        },
+        {
+          "name": "DELETE Application",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{api_url}}/admin/applications/{{application_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Creators",
+      "item": [
+        {
+          "name": "GET List",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{api_url}}/admin/creators?status=priority&platform=instagram"
+          }
+        },
+        {
+          "name": "GET Single",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{api_url}}/admin/creators/{{creator_id}}"
+          }
+        },
+        {
+          "name": "PUT Update",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"city\": \"Bengaluru\",\n  \"engagementRate\": 5.2,\n  \"status\": \"priority\",\n  \"upiId\": \"aisha@upi\",\n  \"followers\": 30000,\n  \"internalNotes\": \"Updated profile\"\n}"
+            },
+            "url": "{{api_url}}/admin/creators/{{creator_id}}"
+          }
+        },
+        {
+          "name": "PATCH Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"priority\"\n}"
+            },
+            "url": "{{api_url}}/admin/creators/{{creator_id}}/status"
+          }
+        },
+        {
+          "name": "POST Tags",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tags\": [\"beauty\", \"metro\", \"priority\"]\n}"
+            },
+            "url": "{{api_url}}/admin/creators/{{creator_id}}/tags"
+          }
+        },
+        {
+          "name": "POST Bulk Tag",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"creatorIds\": [\"{{creator_id}}\"],\n  \"tags\": [\"priority\", \"metro\"]\n}"
+            },
+            "url": "{{api_url}}/admin/creators/bulk-tag"
+          }
+        },
+        {
+          "name": "DELETE Creator",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{api_url}}/admin/creators/{{creator_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Campaigns",
+      "item": [
+        {
+          "name": "POST Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"campaignName\": \"Summer Glow Launch\",\n  \"brandName\": \"Acme Beauty\",\n  \"brandLeadId\": \"{{brand_lead_id}}\",\n  \"type\": \"sponsored_post\",\n  \"budget\": 300000,\n  \"creatorCount\": 1,\n  \"timelineStart\": \"2026-04-05T00:00:00.000Z\",\n  \"timelineEnd\": \"2026-04-20T00:00:00.000Z\",\n  \"creators\": [\n    {\n      \"creatorId\": \"{{creator_id}}\",\n      \"amount\": 55000\n    }\n  ]\n}"
+            },
+            "url": "{{api_url}}/admin/campaigns"
+          }
+        },
+        {
+          "name": "GET List",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{api_url}}/admin/campaigns?status=active&page=1&limit=10"
+          }
+        },
+        {
+          "name": "GET Suggest",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{api_url}}/admin/campaigns/suggest?niche=beauty&minFollowers=10000&maxFollowers=50000&city=Bengaluru&minEngagement=2"
+          }
+        },
+        {
+          "name": "GET Single",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{api_url}}/admin/campaigns/{{campaign_id}}"
+          }
+        },
+        {
+          "name": "PUT Update",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"active\",\n  \"brandPaymentStatus\": \"received\",\n  \"brandPaymentAmount\": 300000,\n  \"performanceData\": {\n    \"totalReach\": 100000,\n    \"totalImpressions\": 150000,\n    \"totalEngagement\": 12000,\n    \"engagementRate\": 8,\n    \"linkClicks\": 3000\n  },\n  \"creators\": [\n    {\n      \"creatorId\": \"{{creator_id}}\",\n      \"amount\": 55000\n    }\n  ]\n}"
+            },
+            "url": "{{api_url}}/admin/campaigns/{{campaign_id}}"
+          }
+        },
+        {
+          "name": "PATCH Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"active\"\n}"
+            },
+            "url": "{{api_url}}/admin/campaigns/{{campaign_id}}/status"
+          }
+        },
+        {
+          "name": "DELETE Campaign",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{api_url}}/admin/campaigns/{{campaign_id}}"
+          }
+        },
+        {
+          "name": "POST Send Briefs",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{}" },
+            "url": "{{api_url}}/admin/campaigns/{{campaign_id}}/send-briefs"
+          }
+        },
+        {
+          "name": "POST Bulk Send Briefs",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"campaignIds\": [\"{{campaign_id}}\"]\n}"
+            },
+            "url": "{{api_url}}/admin/campaigns/bulk-send-briefs"
+          }
+        },
+        {
+          "name": "POST Approve Content",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"feedback\": \"Looks good\"\n}"
+            },
+            "url": "{{api_url}}/admin/campaigns/{{campaign_id}}/creators/{{creator_id}}/approve-content"
+          }
+        },
+        {
+          "name": "POST Revision Content",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"feedback\": \"Please tweak the CTA placement\"\n}"
+            },
+            "url": "{{api_url}}/admin/campaigns/{{campaign_id}}/creators/{{creator_id}}/revision-content"
+          }
+        },
+        {
+          "name": "POST Mark Live",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"postUrl\": \"https://instagram.com/p/live-post\"\n}"
+            },
+            "url": "{{api_url}}/admin/campaigns/{{campaign_id}}/creators/{{creator_id}}/mark-live"
+          }
+        },
+        {
+          "name": "PATCH Assignment Payment Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentStatus\": \"processing\"\n}"
+            },
+            "url": "{{api_url}}/admin/campaigns/{{campaign_id}}/creators/{{creator_id}}/payment-status"
+          }
+        },
+        {
+          "name": "POST Complete",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{}" },
+            "url": "{{api_url}}/admin/campaigns/{{campaign_id}}/complete"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Payments",
+      "item": [
+        {
+          "name": "GET List",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{api_url}}/admin/payments?status=pending"
+          }
+        },
+        {
+          "name": "POST Process",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"assignmentIds\": [\"{{assignment_id}}\"]\n}"
+            },
+            "url": "{{api_url}}/admin/payments/process"
+          }
+        },
+        {
+          "name": "POST Bulk Process",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"assignmentIds\": [\"{{assignment_id}}\"]\n}"
+            },
+            "url": "{{api_url}}/admin/payments/bulk-process"
+          }
+        },
+        {
+          "name": "DELETE Payment",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{api_url}}/admin/payments/{{payment_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Leads, Users, Reports, Analytics, Notifications, Files",
+      "item": [
+        {
+          "name": "GET Leads",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{api_url}}/admin/leads?status=new&type=creator&page=1&limit=10"
+          }
+        },
+        {
+          "name": "PUT Lead",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"contacted\",\n  \"notes\": \"Reached out by WhatsApp\",\n  \"assignedTo\": null\n}"
+            },
+            "url": "{{api_url}}/admin/leads/{{lead_id}}"
+          }
+        },
+        {
+          "name": "DELETE Lead",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{api_url}}/admin/leads/{{lead_id}}"
+          }
+        },
+        {
+          "name": "GET Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{api_url}}/admin/users"
+          }
+        },
+        {
+          "name": "POST Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Operations Admin\",\n  \"email\": \"ops.admin@triplef.com\",\n  \"password\": \"OpsAdmin@123\",\n  \"role\": \"campaign_manager\",\n  \"isActive\": true\n}"
+            },
+            "url": "{{api_url}}/admin/users"
+          }
+        },
+        {
+          "name": "DELETE User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{api_url}}/admin/users/{{user_id}}"
+          }
+        },
+        {
+          "name": "GET Audit Logs",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{api_url}}/admin/audit-logs?limit=50"
+          }
+        },
+        {
+          "name": "GET Campaign Report",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{api_url}}/admin/reports/campaign/{{campaign_id}}"
+          }
+        },
+        {
+          "name": "GET Analytics Overview",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{api_url}}/admin/analytics/overview"
+          }
+        },
+        {
+          "name": "GET Analytics Creators",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{api_url}}/admin/analytics/creators"
+          }
+        },
+        {
+          "name": "GET Analytics Campaigns",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{api_url}}/admin/analytics/campaigns"
+          }
+        },
+        {
+          "name": "GET Analytics Revenue",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{api_url}}/admin/analytics/revenue"
+          }
+        },
+        {
+          "name": "GET Top Creators",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{api_url}}/admin/analytics/top-creators"
+          }
+        },
+        {
+          "name": "GET Top Brands",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{api_url}}/admin/analytics/top-brands"
+          }
+        },
+        {
+          "name": "GET Failed Notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{api_url}}/admin/notifications/failed"
+          }
+        },
+        {
+          "name": "POST Retry WhatsApp",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{}" },
+            "url": "{{api_url}}/admin/notifications/retry-whatsapp/{{notification_id}}"
+          }
+        },
+        {
+          "name": "POST Retry Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{}" },
+            "url": "{{api_url}}/admin/notifications/retry-email/{{notification_id}}"
+          }
+        },
+        {
+          "name": "POST WhatsApp Test",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"+919530253134\",\n  \"message\": \"Triple F Media WhatsApp test\"\n}"
+            },
+            "url": "{{api_url}}/admin/whatsapp/test"
+          }
+        },
+        {
+          "name": "POST Upload Brief",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "briefPdf", "type": "file", "src": "" }
+              ]
+            },
+            "url": "{{api_url}}/admin/upload/brief"
+          }
+        },
+        {
+          "name": "GET Managed File",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{api_url}}/admin/files/{{file_public_id}}"
+          }
+        },
+        {
+          "name": "DELETE Managed File",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{api_url}}/admin/files/{{file_public_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brand Portal",
+      "item": [
+        {
+          "name": "POST Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"brandName\": \"Acme Beauty\",\n  \"contactName\": \"Nina Verma\",\n  \"email\": \"brand.portal@acme.com\",\n  \"password\": \"Brand@123\",\n  \"phone\": \"+919111111111\"\n}"
+            },
+            "url": "{{api_url}}/brand/auth/register"
+          }
+        },
+        {
+          "name": "POST Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"brand.portal@acme.com\",\n  \"password\": \"Brand@123\"\n}"
+            },
+            "url": "{{api_url}}/brand/auth/login"
+          }
+        },
+        {
+          "name": "GET Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{brand_token}}" }
+            ],
+            "url": "{{api_url}}/brand/dashboard"
+          }
+        },
+        {
+          "name": "GET Campaigns",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{brand_token}}" }
+            ],
+            "url": "{{api_url}}/brand/campaigns"
+          }
+        },
+        {
+          "name": "GET Campaign",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{brand_token}}" }
+            ],
+            "url": "{{api_url}}/brand/campaigns/{{campaign_id}}"
+          }
+        },
+        {
+          "name": "GET Campaign Performance",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{brand_token}}" }
+            ],
+            "url": "{{api_url}}/brand/campaigns/{{campaign_id}}/performance"
+          }
+        },
+        {
+          "name": "PATCH Campaign Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{brand_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"cancelled\"\n}"
+            },
+            "url": "{{api_url}}/brand/campaigns/{{campaign_id}}/status"
+          }
+        },
+        {
+          "name": "POST Brief Authenticated",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{brand_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"campaignGoal\": \"sales\",\n  \"targetAudience\": \"Urban skincare users\",\n  \"budget\": \"2l-5l\",\n  \"timeline\": \"May 2026\",\n  \"notes\": \"Need launch push\"\n}"
+            },
+            "url": "{{api_url}}/brand/brief"
+          }
+        },
+        {
+          "name": "GET Invoices",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{brand_token}}" }
+            ],
+            "url": "{{api_url}}/brand/invoices"
+          }
+        },
+        {
+          "name": "GET Creators Shortlist",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{brand_token}}" }
+            ],
+            "url": "{{api_url}}/brand/creators/shortlist?niche=beauty&minFollowers=10000&maxFollowers=50000&city=Mumbai&minEngagement=2"
+          }
+        },
+        {
+          "name": "GET Campaign Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{brand_token}}" }
+            ],
+            "url": "{{api_url}}/brand/analytics/campaign/{{campaign_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Creator Portal",
+      "item": [
+        {
+          "name": "POST Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"aisha@example.com\",\n  \"password\": \"Creator@123\"\n}"
+            },
+            "url": "{{api_url}}/creator/auth/register"
+          }
+        },
+        {
+          "name": "POST Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"aisha@example.com\",\n  \"password\": \"Creator@123\"\n}"
+            },
+            "url": "{{api_url}}/creator/auth/login"
+          }
+        },
+        {
+          "name": "GET Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{creator_token}}" }
+            ],
+            "url": "{{api_url}}/creator/dashboard"
+          }
+        },
+        {
+          "name": "GET Campaigns",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{creator_token}}" }
+            ],
+            "url": "{{api_url}}/creator/campaigns"
+          }
+        },
+        {
+          "name": "GET Campaign",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{creator_token}}" }
+            ],
+            "url": "{{api_url}}/creator/campaigns/{{campaign_id}}"
+          }
+        },
+        {
+          "name": "POST Submit Content",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{creator_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contentUrl\": \"https://drive.google.com/content-1\"\n}"
+            },
+            "url": "{{api_url}}/creator/campaigns/{{campaign_id}}/content"
+          }
+        },
+        {
+          "name": "PUT Update Content",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{creator_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contentUrl\": \"https://drive.google.com/content-2\"\n}"
+            },
+            "url": "{{api_url}}/creator/campaigns/{{campaign_id}}/content"
+          }
+        },
+        {
+          "name": "DELETE Content",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{creator_token}}" }
+            ],
+            "url": "{{api_url}}/creator/campaigns/{{campaign_id}}/content"
+          }
+        },
+        {
+          "name": "GET Earnings",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{creator_token}}" }
+            ],
+            "url": "{{api_url}}/creator/earnings"
+          }
+        },
+        {
+          "name": "GET Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{creator_token}}" }
+            ],
+            "url": "{{api_url}}/creator/profile"
+          }
+        },
+        {
+          "name": "PUT Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{creator_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"city\": \"Mumbai\",\n  \"whatsapp\": \"+919530237366\",\n  \"upiId\": \"aisha@upi\"\n}"
+            },
+            "url": "{{api_url}}/creator/profile"
+          }
+        },
+        {
+          "name": "PATCH UPI",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{creator_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"upiId\": \"aisha-new@upi\"\n}"
+            },
+            "url": "{{api_url}}/creator/profile/upi"
+          }
+        },
+        {
+          "name": "POST Withdraw",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{creator_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 500,\n  \"upiId\": \"aisha-new@upi\",\n  \"notes\": \"Weekly withdrawal\"\n}"
+            },
+            "url": "{{api_url}}/creator/withdraw"
+          }
+        },
+        {
+          "name": "GET Performance Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{creator_token}}" }
+            ],
+            "url": "{{api_url}}/creator/analytics/performance"
+          }
+        },
+        {
+          "name": "POST Upload Content File",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{creator_token}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "assignmentId", "value": "{{assignment_id}}", "type": "text" },
+                { "key": "content", "type": "file", "src": "" }
+              ]
+            },
+            "url": "{{api_url}}/creator/upload/content"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Webhooks",
+      "item": [
+        {
+          "name": "POST Razorpay Webhook",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-razorpay-signature", "value": "replace_with_computed_signature" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event\": \"payment.captured\",\n  \"payload\": {\n    \"payment\": {\n      \"entity\": {\n        \"id\": \"pay_test_1\",\n        \"order_id\": \"order_test_1\"\n      }\n    }\n  }\n}"
+            },
+            "url": "{{api_url}}/webhooks/razorpay"
+          }
+        },
+        {
+          "name": "POST WhatsApp Webhook",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-webhook-secret", "value": "replace_with_twilio_webhook_secret" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"providerMessageId\": \"test-sid\",\n  \"status\": \"delivered\"\n}"
+            },
+            "url": "{{api_url}}/webhooks/whatsapp"
+          }
+        },
+        {
+          "name": "POST Resend Webhook",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-webhook-secret", "value": "replace_with_resend_webhook_secret" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"email.delivered\",\n  \"data\": {\n    \"email_id\": \"email-1\"\n  }\n}"
+            },
+            "url": "{{api_url}}/webhooks/resend"
+          }
+        }
+      ]
+    }
+  ]
+}
