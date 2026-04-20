@@ -157,6 +157,11 @@ export const applyForCreator = asyncHandler(async (req, res) => {
     whatsapp,
     email,
     referral,
+    // Phase 2: New fields
+    bio,
+    contentType,
+    avgLikes,
+    avgComments,
   } = req.body;
 
   const existingApplication = await Application.findOne({
@@ -183,6 +188,11 @@ export const applyForCreator = asyncHandler(async (req, res) => {
     whatsapp,
     email,
     referral,
+    // Phase 2: New fields
+    bio,
+    contentType,
+    avgLikes,
+    avgComments,
   });
 
   await Lead.create({

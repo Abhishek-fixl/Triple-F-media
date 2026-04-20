@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-import { CREATOR_PLATFORMS, CREATOR_NICHES, CREATOR_STATUSES } from '../utils/constants.js';
+import { CREATOR_PLATFORMS, CREATOR_NICHES, CREATOR_STATUSES, AVAILABILITY_STATUSES, CONTENT_FORMATS, CONTENT_STYLES } from '../utils/constants.js';
 
 const creatorSchema = new mongoose.Schema(
   {
@@ -24,6 +24,32 @@ const creatorSchema = new mongoose.Schema(
     tags: [{ type: String, trim: true }],
     internalNotes: { type: String, trim: true },
     lastLogin: Date,
+
+    // Phase 3: Profile Fields (Part 1)
+    // Profile
+    avatar: { type: String },  // Cloudinary URL
+    bio: { type: String, maxlength: 500 },
+    memberSince: { type: Date, default: Date.now },
+
+    // Enhanced Platform
+    primaryNiche: { type: String },
+    secondaryNiche: { type: String },
+    followersDisplay: { type: String },  // "128K"
+
+    // Phase 4: Availability & Stats (Part 2)
+    availabilityStatus: { 
+      type: String, 
+      enum: AVAILABILITY_STATUSES, 
+      default: 'available' 
+    },
+    availabilityNote: { type: String, maxlength: 200 },
+    onTimeStreak: { type: Number, default: 0 },
+
+    // Phase 5: Content Preferences (Part 3)
+    contentFormats: [{ type: String, enum: CONTENT_FORMATS }],
+    contentStyles: [{ type: String, enum: CONTENT_STYLES }],
+    languages: [{ type: String }],  // ['Hindi', 'English']
+    regions: [{ type: String }]     // ['North India', 'West India']
   },
   {
     timestamps: true,

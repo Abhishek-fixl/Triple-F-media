@@ -38,6 +38,19 @@ const allowedCreatorFields = [
   'panNumber',
   'status',
   'internalNotes',
+  // Phase 3
+  'bio',
+  'primaryNiche',
+  'secondaryNiche',
+  // Phase 4
+  'availabilityStatus',
+  'availabilityNote',
+  'onTimeStreak',
+  // Phase 5
+  'contentFormats',
+  'contentStyles',
+  'languages',
+  'regions',
 ];
 
 export const listApplications = asyncHandler(async (req, res) => {
@@ -98,8 +111,10 @@ export const approveApplication = asyncHandler(async (req, res) => {
         handle: req.body.handle || application.name.toLowerCase().replace(/\s+/g, ''),
       platform: application.platform,
       followers: parseFollowerBucketToNumber(application.followers),
+      followersDisplay: application.followers,  // Store original format e.g., "10K-50K"
       followersLastUpdated: new Date(),
       niche: application.niche,
+      primaryNiche: application.niche,  // Set primary niche from application
       city: application.city,
       whatsapp: application.whatsapp,
       upiId: req.body.upiId,
@@ -108,6 +123,9 @@ export const approveApplication = asyncHandler(async (req, res) => {
       status: 'active',
       tags: req.body.tags || [],
       internalNotes: req.body.internalNotes,
+      // Phase 3: Profile Fields
+      bio: application.bio,  // From application (Phase 2)
+      memberSince: new Date(),  // Set join date when approved
     });
   }
 
