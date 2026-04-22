@@ -11,6 +11,13 @@ import {
   bulkTagCreators,
   createAdminUser,
   deleteBrandLead,
+  listBrandLeads,
+  updateBrandLead,
+  getBrandLead,
+  addBrandLeadInteraction,
+  deleteBrandLeadInteraction,
+  convertBrandLead,
+  loseBrandLead,
   deleteAdminUser,
   deleteApplication,
   deleteCreator,
@@ -25,6 +32,11 @@ import {
   rejectApplication,
   updateCreator,
   updateCreatorTags,
+  // Phase 6
+  addPortfolioLink,
+  deletePortfolioLink,
+  addCollaboration,
+  deleteCollaboration,
 } from '../controllers/adminController.js';
 import { CREATOR_STATUSES, USER_ROLES } from '../utils/constants.js';
 import { createAdminUserValidation } from '../validators/campaignValidator.js';
@@ -156,7 +168,39 @@ router.post(
 );
 router.delete('/creators/:id', requireRole([USER_ROLES.SUPER_ADMIN]), deleteCreator);
 
+// Phase 6: Portfolio & Collaboration routes
+router.post(
+  '/creators/:id/portfolio',
+  requireRole([USER_ROLES.SUPER_ADMIN, USER_ROLES.CAMPAIGN_MANAGER]),
+  [body('url').trim().notEmpty().withMessage('URL is required'), validate],
+  addPortfolioLink,
+);
+router.delete(
+  '/creators/:id/portfolio/:portfolioId',
+  requireRole([USER_ROLES.SUPER_ADMIN, USER_ROLES.CAMPAIGN_MANAGER]),
+  deletePortfolioLink,
+);
+router.post(
+  '/creators/:id/collaborations',
+  requireRole([USER_ROLES.SUPER_ADMIN, USER_ROLES.CAMPAIGN_MANAGER]),
+  [body('brand').trim().notEmpty().withMessage('Brand name is required'), validate],
+  addCollaboration,
+);
+router.delete(
+  '/creators/:id/collaborations/:collabId',
+  requireRole([USER_ROLES.SUPER_ADMIN, USER_ROLES.CAMPAIGN_MANAGER]),
+  deleteCollaboration,
+);
+
 router.get('/audit-logs', requireRole([USER_ROLES.SUPER_ADMIN]), listAuditLogs);
+router.get('/brand-leads', requireRole([USER_ROLES.SUPER_ADMIN, USER_ROLES.CAMPAIGN_MANAGER]), listBrandLeads);
+router.get('/brand-leads/:id', requireRole([USER_ROLES.SUPER_ADMIN, USER_ROLES.CAMPAIGN_MANAGER]), getBrandLead);
+router.put('/brand-leads/:id', requireRole([USER_ROLES.SUPER_ADMIN, USER_ROLES.CAMPAIGN_MANAGER]), updateBrandLead);
+router.post('/brand-leads/:id/interactions', requireRole([USER_ROLES.SUPER_ADMIN, USER_ROLES.CAMPAIGN_MANAGER]), addBrandLeadInteraction);
+router.delete('/brand-leads/:id/interactions/:interactionId', requireRole([USER_ROLES.SUPER_ADMIN, USER_ROLES.CAMPAIGN_MANAGER]), deleteBrandLeadInteraction);
+// Phase 26: Convert & Lose
+router.post('/brand-leads/:id/convert', requireRole([USER_ROLES.SUPER_ADMIN, USER_ROLES.CAMPAIGN_MANAGER]), convertBrandLead);
+router.post('/brand-leads/:id/lose', requireRole([USER_ROLES.SUPER_ADMIN, USER_ROLES.CAMPAIGN_MANAGER]), loseBrandLead);
 router.delete('/brand-leads/:id', requireRole([USER_ROLES.SUPER_ADMIN]), deleteBrandLead);
 router.get('/users', requireRole([USER_ROLES.SUPER_ADMIN]), listAdminUsers);
 router.post('/users', requireRole([USER_ROLES.SUPER_ADMIN]), createAdminUserValidation, validate, createAdminUser);

@@ -7,9 +7,12 @@ import {
   completeCampaign,
   createCampaign,
   deleteCampaign,
+  getCampaignContent,
   getCampaignDetails,
+  getCampaignShortlist,
   listCampaigns,
   markPostLive,
+  markShortlistReady,
   patchCampaignCreatorPaymentStatus,
   patchCampaignStatus,
   requestContentRevision,
@@ -92,5 +95,12 @@ router.patch(
   patchCampaignCreatorPaymentStatus,
 );
 router.post('/:id/complete', requireRole([USER_ROLES.SUPER_ADMIN, USER_ROLES.CAMPAIGN_MANAGER]), completeCampaign);
+
+// Phase 23: Content submissions
+router.get('/:id/content', requireRole([USER_ROLES.SUPER_ADMIN, USER_ROLES.CAMPAIGN_MANAGER]), getCampaignContent);
+
+// Phase 24: Shortlist endpoints
+router.get('/:id/shortlist', requireRole([USER_ROLES.SUPER_ADMIN, USER_ROLES.CAMPAIGN_MANAGER]), getCampaignShortlist);
+router.put('/:id/shortlist-ready', requireRole([USER_ROLES.SUPER_ADMIN, USER_ROLES.CAMPAIGN_MANAGER]), markShortlistReady);
 
 export default router;

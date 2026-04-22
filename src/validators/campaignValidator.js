@@ -2,10 +2,22 @@ import { body } from 'express-validator';
 
 import {
   BRAND_PAYMENT_STATUSES,
+  CAMPAIGN_GOALS,
+  CAMPAIGN_PLATFORMS,
   CAMPAIGN_STATUSES,
   CAMPAIGN_TYPES,
   USER_ROLE_VALUES,
 } from '../utils/constants.js';
+
+// Helper: parse platforms — FormData sends arrays as JSON strings
+const platformsValidator = body('platforms').optional().custom((value) => {
+  const arr = typeof value === 'string' ? JSON.parse(value) : value;
+  if (!Array.isArray(arr)) throw new Error('Platforms must be an array');
+  arr.forEach((p) => {
+    if (!CAMPAIGN_PLATFORMS.includes(p)) throw new Error(`Invalid platform: ${p}`);
+  });
+  return true;
+});
 
 export const campaignValidation = [
   body('campaignName').trim().notEmpty().withMessage('Campaign name is required'),
@@ -21,6 +33,17 @@ export const campaignValidation = [
     .withMessage('Creator count must be at least 1'),
   body('status').optional().isIn(CAMPAIGN_STATUSES).withMessage('Invalid campaign status'),
   body('brandPaymentStatus').optional().isIn(BRAND_PAYMENT_STATUSES).withMessage('Invalid brand payment status'),
+  // Phase 9 fields
+  body('campaignGoal').optional().isIn(CAMPAIGN_GOALS).withMessage('Invalid campaign goal'),
+  platformsValidator,
+  body('niche').optional().trim(),
+  body('briefText').optional().trim().isLength({ max: 2000 }).withMessage('Brief text too long'),
+  body('targetAudience').optional().trim().isLength({ max: 500 }).withMessage('Target audience too long'),
+  body('deliverables').optional().trim().isLength({ max: 500 }).withMessage('Deliverables too long'),
+  body('contentFormat').optional().trim(),
+  body('brandContactEmail').optional().trim().isEmail().withMessage('Invalid brand contact email'),
+  body('brandContactPhone').optional().trim(),
+  body('notes').optional().trim().isLength({ max: 1000 }).withMessage('Notes too long'),
   body('creators')
     .optional()
     .custom((value) => {
@@ -51,6 +74,17 @@ export const updateCampaignValidation = [
     .withMessage('Creator count must be at least 1'),
   body('status').optional().isIn(CAMPAIGN_STATUSES).withMessage('Invalid campaign status'),
   body('brandPaymentStatus').optional().isIn(BRAND_PAYMENT_STATUSES).withMessage('Invalid brand payment status'),
+  // Phase 9 fields
+  body('campaignGoal').optional().isIn(CAMPAIGN_GOALS).withMessage('Invalid campaign goal'),
+  platformsValidator,
+  body('niche').optional().trim(),
+  body('briefText').optional().trim().isLength({ max: 2000 }),
+  body('targetAudience').optional().trim().isLength({ max: 500 }),
+  body('deliverables').optional().trim().isLength({ max: 500 }),
+  body('contentFormat').optional().trim(),
+  body('brandContactEmail').optional().trim().isEmail().withMessage('Invalid brand contact email'),
+  body('brandContactPhone').optional().trim(),
+  body('notes').optional().trim().isLength({ max: 1000 }),
   body('creators')
     .optional()
     .custom((value) => {

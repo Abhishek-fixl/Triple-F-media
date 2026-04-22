@@ -13,6 +13,7 @@ import analyticsRoutes from './routes/analyticsRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 // import brandPortalRoutes from './routes/brandPortalRoutes.js';
 import brandRoutes from './routes/brandRoutes.js';
+import brandMgmtRoutes from './routes/brandMgmtRoutes.js';
 import campaignRoutes from './routes/campaignRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
 // import creatorPortalRoutes from './routes/creatorPortalRoutes.js';
@@ -98,6 +99,7 @@ app.get('/health', (_req, res) => {
 
 app.use('/api/admin/campaigns', campaignRoutes);
 app.use('/api/admin/payments', paymentRoutes);
+app.use('/api/admin/brands', brandMgmtRoutes);
 app.use('/api/admin/reports', reportRoutes);
 app.use('/api/admin/leads', leadRoutes);
 app.use('/api/admin/whatsapp', whatsappRoutes);

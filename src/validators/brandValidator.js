@@ -10,4 +10,13 @@ export const brandBriefValidation = [
   body('budget').trim().notEmpty().withMessage('Budget is required'),
   body('timeline').trim().notEmpty().withMessage('Timeline is required'),
   body('notes').optional().trim(),
+  // Phase 11: New contact fields
+  body('hasWebsite').optional().isIn(['Yes', 'No']).withMessage('hasWebsite must be Yes or No'),
+  body('website').optional().trim(),
+  body('industry').optional().trim(),
+  body('referral').optional().trim(),
+  body('services').optional().isArray().withMessage('Services must be an array'),
+  body('whatsapp').optional().trim(),
+  body('designation').optional().trim(),
+  body('city').optional().trim(),
 ];

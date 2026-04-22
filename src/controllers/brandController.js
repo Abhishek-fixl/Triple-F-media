@@ -17,14 +17,24 @@ const safeCreateNotificationLog = async (payload, context = {}) => {
 };
 
 export const submitBrandBrief = asyncHandler(async (req, res) => {
-  const brandLead = await BrandLead.create(req.body);
+  // Phase 11: Pick all allowed fields including new contact fields
+  const allowedFields = [
+    'brandName', 'contactName', 'email', 'phone',
+    'campaignGoal', 'targetAudience', 'budget', 'timeline', 'notes',
+    'hasWebsite', 'website', 'industry', 'referral',
+    'services', 'whatsapp', 'designation', 'city',
+  ];
+  const data = {};
+  allowedFields.forEach(f => { if (req.body[f] !== undefined) data[f] = req.body[f]; });
+
+  const brandLead = await BrandLead.create(data);
 
   await Lead.create({
     type: 'brand',
     source: 'form',
     name: req.body.contactName,
     email: req.body.email,
-    whatsapp: req.body.phone,
+    whatsapp: req.body.whatsapp || req.body.phone,
     status: 'qualified',
     notes: `Brand lead created for ${req.body.brandName}`,
   });

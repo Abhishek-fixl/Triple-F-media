@@ -49,7 +49,57 @@ const creatorSchema = new mongoose.Schema(
     contentFormats: [{ type: String, enum: CONTENT_FORMATS }],
     contentStyles: [{ type: String, enum: CONTENT_STYLES }],
     languages: [{ type: String }],  // ['Hindi', 'English']
-    regions: [{ type: String }]     // ['North India', 'West India']
+    regions: [{ type: String }],    // ['North India', 'West India']
+
+    // Phase 6: Audience & Portfolio (Part 4)
+    // Audience Demographics
+    audienceAgeGroup: { type: String },       // "18-28"
+    audienceGender: { type: String },         // "Mostly Female"
+    audienceTopCities: [{ type: String }],
+
+    // Portfolio
+    portfolioLinks: [{
+      url: { type: String, trim: true },
+      title: { type: String, trim: true },
+      thumbnail: { type: String, trim: true },
+      platform: { type: String, trim: true },
+      addedAt: { type: Date, default: Date.now }
+    }],
+
+    // Past Collaborations
+    pastCollaborations: [{
+      brand: { type: String, trim: true },
+      campaign: { type: String, trim: true },
+      date: { type: Date },
+      description: { type: String, trim: true }
+    }],
+
+    // Phase 7: Payment & KYC (Part 5)
+    // Payment Settings
+    paymentMethod: { type: String, enum: ['upi', 'bank'], default: 'upi' },
+    bankAccount: {
+      accountNumber: { type: String, trim: true },
+      ifscCode: { type: String, trim: true },
+      bankName: { type: String, trim: true },
+      accountHolderName: { type: String, trim: true }
+    },
+    minimumPayout: { type: Number, default: 0 },
+
+    // KYC
+    panVerified: { type: Boolean, default: false },
+    aadhaarVerified: { type: Boolean, default: false },
+    platformVerified: { type: Boolean, default: false },
+
+    // Settings
+    profileVisible: { type: Boolean, default: true },
+
+    // Phase 8: Social Links (Part 6)
+    instagramUrl: { type: String, trim: true },
+    youtubeUrl: { type: String, trim: true },
+    linkedinUrl: { type: String, trim: true },
+    twitterUrl: { type: String, trim: true },
+    mojUrl: { type: String, trim: true },
+    joshUrl: { type: String, trim: true }
   },
   {
     timestamps: true,

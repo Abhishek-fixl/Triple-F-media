@@ -166,3 +166,7 @@ export const PAYMENT_METHODS = ['Bank Transfer', 'UPI', 'Cash', 'Cheque'];
 export const BRAND_STATUSES = ['active', 'lead', 'on_hold', 'churned', 'blacklisted'];
 
 export const CAMPAIGN_GOALS_EXTENDED = ['awareness', 'sales', 'ugc', 'engagement', 'event', 'launch', 'app_installs', 'retargeting'];
+
+// Phase 9: Campaign Model enums
+export const CAMPAIGN_GOALS = ['awareness', 'sales', 'ugc', 'engagement', 'event', 'launch'];
+export const CAMPAIGN_PLATFORMS = ['instagram', 'youtube', 'reels', 'shorts', 'linkedin', 'twitter'];

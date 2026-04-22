@@ -19,6 +19,7 @@ import {
 const allowedCampaignFields = [
   'campaignName',
   'brandName',
+  'brandId',
   'brandLeadId',
   'type',
   'budget',
@@ -32,10 +33,29 @@ const allowedCampaignFields = [
   'totalCreatorCost',
   'triplefFee',
   'performanceData',
+  // Phase 9
+  'campaignGoal',
+  'platforms',
+  'niche',
+  'briefText',
+  'targetAudience',
+  'deliverables',
+  'contentFormat',
+  'brandContactEmail',
+  'brandContactPhone',
+  'notes',
+  // Phase 10
+  'phase',
 ];
 
 export const createCampaign = asyncHandler(async (req, res) => {
   const payload = pick(req.body, allowedCampaignFields);
+
+  // FormData sends arrays as JSON strings — parse them back
+  if (typeof payload.platforms === 'string') {
+    try { payload.platforms = JSON.parse(payload.platforms) } catch { payload.platforms = [] }
+  }
+
   const creatorsPayload =
     typeof req.body.creators === 'string' ? JSON.parse(req.body.creators) : req.body.creators;
 
@@ -51,31 +71,40 @@ export const createCampaign = asyncHandler(async (req, res) => {
 
   const campaign = await Campaign.create(payload);
 
+  // Phase 10: Set initial phase based on status
+  const statusToPhase = { draft: 'Planning', active: 'Creator Selection' };
+  if (!payload.phase && statusToPhase[payload.status || 'draft']) {
+    campaign.phase = statusToPhase[payload.status || 'draft'];
+    await campaign.save();
+  }
+
   if (payload.brandLeadId) {
     await BrandLead.findByIdAndUpdate(payload.brandLeadId, { status: 'converted' });
   }
 
   if (Array.isArray(creatorsPayload) && creatorsPayload.length) {
-    const campaignCreators = await Promise.all(
-      creatorsPayload.map(async (item) => {
-        const creator = await Creator.findById(item.creatorId);
-        if (!creator) {
-          throw new ApiError(404, `Creator not found: ${item.creatorId}`, 'CREATOR_NOT_FOUND');
-        }
+    const campaignCreatorDocs = [];
+    for (const item of creatorsPayload) {
+      // Skip mock/invalid IDs (not valid MongoDB ObjectId)
+      if (!item.creatorId || !/^[a-f\d]{24}$/i.test(item.creatorId)) continue;
+      const creator = await Creator.findById(item.creatorId);
+      if (!creator) continue; // skip if not found instead of throwing
 
-        return CampaignCreator.create({
-          campaignId: campaign._id,
-          creatorId: creator._id,
-          creatorName: creator.name,
-          amount: item.amount,
-          status: 'invited',
-        });
-      }),
-    );
+      const cc = await CampaignCreator.create({
+        campaignId: campaign._id,
+        creatorId: creator._id,
+        creatorName: creator.name,
+        amount: item.amount,
+        status: 'invited',
+      });
+      campaignCreatorDocs.push(cc);
+    }
 
-    campaign.totalCreatorCost = campaignCreators.reduce((sum, item) => sum + item.amount, 0);
-    campaign.triplefFee = Math.max(campaign.budget - campaign.totalCreatorCost, 0);
-    await campaign.save();
+    if (campaignCreatorDocs.length) {
+      campaign.totalCreatorCost = campaignCreatorDocs.reduce((sum, item) => sum + item.amount, 0);
+      campaign.triplefFee = Math.max(campaign.budget - campaign.totalCreatorCost, 0);
+      await campaign.save();
+    }
   }
 
   await createAuditLog({
@@ -347,7 +376,30 @@ export const completeCampaign = asyncHandler(async (req, res) => {
 export const patchCampaignStatus = asyncHandler(async (req, res) => {
   const campaign = await Campaign.findById(req.params.id);
   if (!campaign) throw new ApiError(404, 'Campaign not found', 'CAMPAIGN_NOT_FOUND');
+
   campaign.status = req.body.status;
+
+  // Phase 10: Auto-update phase based on status
+  const statusToPhase = {
+    draft:          'Planning',
+    active:         'Creator Selection',
+    content_review: 'Content Submission',
+    completed:      'Finished',
+    cancelled:      'Archived',
+  };
+  if (statusToPhase[req.body.status]) {
+    campaign.phase = statusToPhase[req.body.status];
+  }
+
+  // Update contentPending count
+  if (req.body.status === 'content_review') {
+    const pendingCount = await CampaignCreator.countDocuments({
+      campaignId: campaign._id,
+      contentStatus: { $in: ['pending', 'submitted', 'under_review'] },
+    });
+    campaign.contentPending = pendingCount;
+  }
+
   await campaign.save();
   sendSuccess(res, 200, { campaign }, 'Campaign status updated');
 });
@@ -389,4 +441,121 @@ export const patchCampaignCreatorPaymentStatus = asyncHandler(async (req, res) =
   if (req.body.paymentStatus === 'paid') assignment.paidAt = new Date();
   await assignment.save();
   sendSuccess(res, 200, { assignment }, 'Payment status updated');
+});
+
+// Phase 23: Content submissions endpoint
+export const getCampaignContent = asyncHandler(async (req, res) => {
+  const campaign = await Campaign.findById(req.params.id);
+  if (!campaign) throw new ApiError(404, 'Campaign not found', 'CAMPAIGN_NOT_FOUND');
+
+  const assignments = await CampaignCreator.find({ campaignId: campaign._id })
+    .populate('creatorId', 'name handle avatar platform niche engagementRate');
+
+  const contentSubmissions = assignments.map(a => ({
+    assignmentId:       a._id,
+    creatorId:          a.creatorId?._id,
+    creatorName:        a.creatorName,
+    creatorHandle:      a.creatorId?.handle,
+    creatorAvatar:      a.creatorId?.avatar,
+    creatorPlatform:    a.creatorId?.platform,
+    creatorNiche:       a.creatorId?.niche,
+    creatorEngagement:  a.creatorId?.engagementRate,
+    // Assignment status
+    assignmentStatus:   a.status,
+    contentStatus:      a.contentStatus,
+    contentUrl:         a.contentUrl,
+    contentSubmittedAt: a.contentSubmittedAt,
+    reviewFeedback:     a.reviewFeedback,
+    approvedAt:         a.approvedAt,
+    postStatus:         a.postStatus,
+    postUrl:            a.postUrl,
+    liveAt:             a.liveAt,
+    paymentStatus:      a.paymentStatus,
+    amount:             a.amount,
+    briefSent:          a.briefSent,
+    briefSentAt:        a.briefSentAt,
+  }));
+
+  // Summary counts
+  const summary = {
+    total:             contentSubmissions.length,
+    pending:           contentSubmissions.filter(c => c.contentStatus === 'pending').length,
+    submitted:         contentSubmissions.filter(c => c.contentStatus === 'submitted').length,
+    underReview:       contentSubmissions.filter(c => c.contentStatus === 'under_review').length,
+    approved:          contentSubmissions.filter(c => c.contentStatus === 'approved').length,
+    revisionRequested: contentSubmissions.filter(c => c.contentStatus === 'revision_requested').length,
+    live:              contentSubmissions.filter(c => c.postStatus === 'live').length,
+  };
+
+  sendSuccess(res, 200, {
+    campaignId:   campaign._id,
+    campaignName: campaign.campaignName,
+    contentSubmissions,
+    summary,
+  });
+});
+
+// Phase 24: Shortlist endpoint
+export const getCampaignShortlist = asyncHandler(async (req, res) => {
+  const campaign = await Campaign.findById(req.params.id);
+  if (!campaign) throw new ApiError(404, 'Campaign not found', 'CAMPAIGN_NOT_FOUND');
+
+  const assignments = await CampaignCreator.find({ campaignId: campaign._id })
+    .populate('creatorId', 'name handle avatar platform niche followers followersDisplay engagementRate city availabilityStatus');
+
+  const shortlist = assignments.map(a => ({
+    assignmentId:    a._id,
+    creatorId:       a.creatorId?._id,
+    creatorName:     a.creatorName,
+    handle:          a.creatorId?.handle,
+    avatar:          a.creatorId?.avatar,
+    platform:        a.creatorId?.platform,
+    niche:           a.creatorId?.niche,
+    followers:       a.creatorId?.followersDisplay || a.creatorId?.followers,
+    engagementRate:  a.creatorId?.engagementRate,
+    city:            a.creatorId?.city,
+    availabilityStatus: a.creatorId?.availabilityStatus,
+    // Assignment fields
+    status:          a.status,
+    contentStatus:   a.contentStatus,
+    amount:          a.amount,
+    briefSent:       a.briefSent,
+    briefSentAt:     a.briefSentAt,
+    paymentStatus:   a.paymentStatus,
+    createdAt:       a.createdAt,
+  }));
+
+  sendSuccess(res, 200, {
+    campaignId:     campaign._id,
+    campaignName:   campaign.campaignName,
+    shortlistReady: campaign.shortlistReady,
+    shortlist,
+    summary: {
+      total:     shortlist.length,
+      invited:   shortlist.filter(c => c.status === 'invited').length,
+      accepted:  shortlist.filter(c => c.status === 'accepted').length,
+      declined:  shortlist.filter(c => c.status === 'declined').length,
+      confirmed: shortlist.filter(c => c.status === 'confirmed').length,
+    },
+  });
+});
+
+// Phase 24: Mark shortlist ready
+export const markShortlistReady = asyncHandler(async (req, res) => {
+  const campaign = await Campaign.findById(req.params.id);
+  if (!campaign) throw new ApiError(404, 'Campaign not found', 'CAMPAIGN_NOT_FOUND');
+
+  campaign.shortlistReady = true;
+  await campaign.save();
+
+  await createAuditLog({
+    req,
+    user: req.user,
+    action: 'mark_shortlist_ready',
+    module: 'campaigns',
+    recordId: campaign._id,
+    details: { campaignName: campaign.campaignName },
+  });
+
+  sendSuccess(res, 200, { campaign }, 'Shortlist marked as ready');
 });
