@@ -134,3 +134,39 @@ export const PAYMENT_STATUSES = ['pending', 'processing', 'paid', 'failed'];
 export const LEAD_TYPES = ['creator', 'brand'];
 export const LEAD_SOURCES = ['calculator', 'chat', 'form', 'referral'];
 export const LEAD_STATUSES = ['new', 'contacted', 'qualified', 'converted', 'lost'];
+
+// Phase 1: New Enums for Enhanced Backend
+export const AVAILABILITY_STATUSES = ['available', 'busy', 'on_break'];
+
+// Phase 5: Content Preferences
+export const CONTENT_FORMATS = ['Reels', 'Stories', 'Posts', 'Long-form', 'Shorts'];
+export const CONTENT_STYLES = ['Entertainment', 'Educational', 'Lifestyle', 'Review', 'Tutorial'];
+
+export const CAMPAIGN_PHASES = ['N/A', 'Planning', 'Creator Selection', 'Content Submission', 'Live', 'Finished', 'Archived'];
+
+export const LEAD_PRIORITIES = ['hot', 'warm', 'cold'];
+
+export const TICKET_CATEGORIES = ['Payment', 'Content', 'Campaign', 'Billing', 'Account', 'Technical', 'General'];
+
+export const TICKET_STATUSES = ['open', 'in_progress', 'escalated', 'resolved', 'closed', 'reopened'];
+
+export const NOTIFICATION_TYPES = [
+  'campaign_invite',
+  'payment_approved',
+  'payment_received',
+  'content_approved',
+  'revision_requested',
+  'content_review',
+  'campaign_live',
+  'general'
+];
+
+export const PAYMENT_METHODS = ['Bank Transfer', 'UPI', 'Cash', 'Cheque'];
+
+export const BRAND_STATUSES = ['active', 'lead', 'on_hold', 'churned', 'blacklisted'];
+
+export const CAMPAIGN_GOALS_EXTENDED = ['awareness', 'sales', 'ugc', 'engagement', 'event', 'launch', 'app_installs', 'retargeting'];
+
+// Phase 9: Campaign Model enums
+export const CAMPAIGN_GOALS = ['awareness', 'sales', 'ugc', 'engagement', 'event', 'launch'];
+export const CAMPAIGN_PLATFORMS = ['instagram', 'youtube', 'reels', 'shorts', 'linkedin', 'twitter'];

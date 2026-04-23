@@ -17,6 +17,51 @@ const paymentSchema = new mongoose.Schema(
     netAmount: { type: Number, default: 0 },
     invoiceUrl: { type: String, trim: true },
     paidAt: Date,
+
+    // Phase 14: Finance Enhancement Fields
+    // References
+    campaignId: { type: mongoose.Schema.Types.ObjectId, ref: 'Campaign', index: true },
+
+    // Creator Info (denormalized)
+    niche: { type: String, trim: true },
+    platform: { type: String, trim: true },
+
+    // Brand Info (denormalized)
+    brand: { type: String, trim: true },
+    campaignType: { type: String, trim: true },
+
+    // TDS
+    tdsApplicable: { type: Boolean, default: true },
+    tdsPercentage: { type: Number, default: 10 },
+
+    // Approval Flow
+    approvalStatus: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending', index: true },
+    approvedAt: { type: Date },
+    approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    rejectedAt: { type: Date },
+    rejectedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    rejectionReason: { type: String, trim: true },
+
+    // Transaction Details
+    transactionId: { type: String, trim: true },
+    paymentMethod: { type: String, enum: ['Bank Transfer', 'UPI', 'Cash', 'Cheque'], default: 'UPI' },
+    bankAccount: { type: String, trim: true },
+
+    // References
+    invoiceNo: { type: String, trim: true },
+    postUrl: { type: String, trim: true },
+
+    // Finance Notes
+    notes: [{
+      text: { type: String, trim: true },
+      author: { type: String, trim: true },
+      authorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      time: { type: Date, default: Date.now },
+    }],
+
+    // Compliance
+    form16aStatus: { type: String, enum: ['generated', 'pending', 'not_applicable'], default: 'pending' },
+    form16aUrl: { type: String, trim: true },
   },
   {
     timestamps: { createdAt: true, updatedAt: false },
@@ -24,5 +69,6 @@ const paymentSchema = new mongoose.Schema(
 );
 
 paymentSchema.index({ status: 1, createdAt: -1 });
+paymentSchema.index({ approvalStatus: 1, status: 1 });
 
 export default mongoose.model('Payment', paymentSchema);

@@ -38,6 +38,40 @@ const allowedCreatorFields = [
   'panNumber',
   'status',
   'internalNotes',
+  // Phase 3
+  'bio',
+  'primaryNiche',
+  'secondaryNiche',
+  // Phase 4
+  'availabilityStatus',
+  'availabilityNote',
+  'onTimeStreak',
+  // Phase 5
+  'contentFormats',
+  'contentStyles',
+  'languages',
+  'regions',
+  // Phase 6
+  'audienceAgeGroup',
+  'audienceGender',
+  'audienceTopCities',
+  'portfolioLinks',
+  'pastCollaborations',
+  // Phase 7
+  'paymentMethod',
+  'bankAccount',
+  'minimumPayout',
+  'panVerified',
+  'aadhaarVerified',
+  'platformVerified',
+  'profileVisible',
+  // Phase 8
+  'instagramUrl',
+  'youtubeUrl',
+  'linkedinUrl',
+  'twitterUrl',
+  'mojUrl',
+  'joshUrl',
 ];
 
 export const listApplications = asyncHandler(async (req, res) => {
@@ -62,16 +96,48 @@ export const listApplications = asyncHandler(async (req, res) => {
 });
 
 export const getApplication = asyncHandler(async (req, res) => {
-  const application = await Application.findById(req.params.id).populate('reviewedBy', 'name email role');
+  // Phase 20: populate both reviewedBy and rejectedBy
+  const application = await Application.findById(req.params.id)
+    .populate('reviewedBy', 'name email role')
+    .populate('rejectedBy', 'name email role');
+
   if (!application) throw new ApiError(404, 'Application not found', 'APPLICATION_NOT_FOUND');
 
   // Format WhatsApp number for click-to-chat link
   const whatsappNumber = application.whatsapp?.replace(/\D/g, '');
   const whatsappLink = whatsappNumber ? `https://wa.me/${whatsappNumber}` : null;
 
+  // Phase 20: computed reviewTime (minutes between submission and review)
+  let reviewTime = null;
+  if (application.reviewedAt && application.createdAt) {
+    const diffMs = new Date(application.reviewedAt) - new Date(application.createdAt);
+    reviewTime = Math.round(diffMs / 60000); // minutes
+  }
+
+  // Phase 20: if approved, fetch linked creator info
+  let creatorInfo = null;
+  if (application.status === 'approved') {
+    const creator = await Creator.findOne({ applicationId: application._id })
+      .select('_id name handle platform status totalEarnings totalCampaigns memberSince');
+    if (creator) {
+      creatorInfo = {
+        creatorId:      creator._id,
+        name:           creator.name,
+        handle:         creator.handle,
+        platform:       creator.platform,
+        status:         creator.status,
+        totalEarnings:  creator.totalEarnings,
+        totalCampaigns: creator.totalCampaigns,
+        memberSince:    creator.memberSince,
+      };
+    }
+  }
+
   sendSuccess(res, 200, {
     application,
     whatsappLink,
+    reviewTime,   // minutes, null if not yet reviewed
+    creatorInfo,  // null if not approved or creator not found
   });
 });
 
@@ -98,8 +164,10 @@ export const approveApplication = asyncHandler(async (req, res) => {
         handle: req.body.handle || application.name.toLowerCase().replace(/\s+/g, ''),
       platform: application.platform,
       followers: parseFollowerBucketToNumber(application.followers),
+      followersDisplay: application.followers,  // Store original format e.g., "10K-50K"
       followersLastUpdated: new Date(),
       niche: application.niche,
+      primaryNiche: application.niche,  // Set primary niche from application
       city: application.city,
       whatsapp: application.whatsapp,
       upiId: req.body.upiId,
@@ -108,6 +176,9 @@ export const approveApplication = asyncHandler(async (req, res) => {
       status: 'active',
       tags: req.body.tags || [],
       internalNotes: req.body.internalNotes,
+      // Phase 3: Profile Fields
+      bio: application.bio,  // From application (Phase 2)
+      memberSince: new Date(),  // Set join date when approved
     });
   }
 
@@ -293,10 +364,34 @@ export const listCreators = asyncHandler(async (req, res) => {
 });
 
 export const getCreator = asyncHandler(async (req, res) => {
-  const creator = await Creator.findById(req.params.id).populate('applicationId');
+  const creator = await Creator.findById(req.params.id)
+    .populate('applicationId', 'name bio contentType avgLikes avgComments referral createdAt');
   if (!creator) throw new ApiError(404, 'Creator not found', 'CREATOR_NOT_FOUND');
 
-  sendSuccess(res, 200, { creator });
+  // Phase 21: Computed stats from CampaignCreator + Payment
+  const [activeCampaigns, completedCampaigns, pendingPayments] = await Promise.all([
+    CampaignCreator.countDocuments({
+      creatorId: creator._id,
+      status: { $in: ['invited', 'accepted', 'confirmed'] },
+    }),
+    CampaignCreator.countDocuments({
+      creatorId: creator._id,
+      contentStatus: 'approved',
+    }),
+    Payment.countDocuments({
+      creatorId: creator._id,
+      status: { $in: ['pending', 'processing'] },
+    }),
+  ]);
+
+  sendSuccess(res, 200, {
+    creator,
+    computedStats: {
+      activeCampaigns,
+      completedCampaigns,
+      pendingPayments,
+    },
+  });
 });
 
 export const updateCreator = asyncHandler(async (req, res) => {
@@ -414,6 +509,274 @@ export const deleteBrandLead = asyncHandler(async (req, res) => {
   if (!brandLead) throw new ApiError(404, 'Brand lead not found', 'BRAND_LEAD_NOT_FOUND');
   await brandLead.deleteOne();
   sendSuccess(res, 200, { id: req.params.id }, 'Brand lead deleted successfully');
+});
+
+export const listBrandLeads = asyncHandler(async (req, res) => {
+  const page = Math.max(1, Number(req.query.page) || 1);
+  const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 50));
+  const skip = (page - 1) * limit;
+  const filter = {};
+  if (req.query.status) filter.status = req.query.status;
+  if (req.query.priority) filter.priority = req.query.priority;
+
+  const [brandLeads, total] = await Promise.all([
+    BrandLead.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
+    BrandLead.countDocuments(filter),
+  ]);
+
+  sendSuccess(res, 200, { brandLeads, pagination: buildPagination({ page, limit, total }) });
+});
+
+export const updateBrandLead = asyncHandler(async (req, res) => {
+  const brandLead = await BrandLead.findById(req.params.id);
+  if (!brandLead) throw new ApiError(404, 'Brand lead not found', 'BRAND_LEAD_NOT_FOUND');
+
+  // Phase 26: Status progression guard — no going back, terminal states locked
+  if (req.body.status && req.body.status !== brandLead.status) {
+    const PIPELINE_ORDER = ['new', 'contacted', 'qualified', 'proposal_sent', 'converted', 'lost'];
+    const currentIdx = PIPELINE_ORDER.indexOf(brandLead.status);
+    const newIdx = PIPELINE_ORDER.indexOf(req.body.status);
+
+    // Block if current status is terminal
+    if (['converted', 'lost'].includes(brandLead.status)) {
+      throw new ApiError(400, `Cannot change status of a ${brandLead.status} lead`, 'INVALID_STATUS_TRANSITION');
+    }
+    // Block backward movement
+    if (newIdx !== -1 && newIdx < currentIdx) {
+      throw new ApiError(400, `Cannot move lead back from '${brandLead.status}' to '${req.body.status}'`, 'INVALID_STATUS_TRANSITION');
+    }
+  }
+
+  const allowed = [
+    'status', 'priority', 'followUpDate', 'assignedTo', 'notes',
+    'convertedCampaignId', 'convertedAt', 'convertedBy',
+    'lostReason', 'lostAt', 'lostBy', 'source',
+  ];
+  allowed.forEach(f => { if (req.body[f] !== undefined) brandLead[f] = req.body[f]; });
+
+  // Auto-set timestamps on status change
+  if (req.body.status === 'converted' && !brandLead.convertedAt) {
+    brandLead.convertedAt = new Date();
+    brandLead.convertedBy = req.user._id;
+  }
+  if (req.body.status === 'lost' && !brandLead.lostAt) {
+    brandLead.lostAt = new Date();
+    brandLead.lostBy = req.user._id;
+  }
+
+  await brandLead.save();
+
+  await createAuditLog({
+    req,
+    user: req.user,
+    action: 'update_brand_lead',
+    module: 'brand_leads',
+    recordId: brandLead._id,
+    details: { updatedFields: Object.keys(req.body) },
+  });
+
+  sendSuccess(res, 200, { brandLead }, 'Brand lead updated successfully');
+});
+
+// Phase 13: Get single brand lead with interactions
+export const getBrandLead = asyncHandler(async (req, res) => {
+  const brandLead = await BrandLead.findById(req.params.id)
+    .populate('assignedTo', 'name email role')
+    .populate('convertedCampaignId', 'campaignName brandName');
+  if (!brandLead) throw new ApiError(404, 'Brand lead not found', 'BRAND_LEAD_NOT_FOUND');
+  sendSuccess(res, 200, { brandLead });
+});
+
+// Phase 13: Add interaction to brand lead
+export const addBrandLeadInteraction = asyncHandler(async (req, res) => {
+  const brandLead = await BrandLead.findById(req.params.id);
+  if (!brandLead) throw new ApiError(404, 'Brand lead not found', 'BRAND_LEAD_NOT_FOUND');
+
+  const { channel, note, outcome } = req.body;
+  if (!note?.trim()) throw new ApiError(400, 'Note is required', 'VALIDATION_ERROR');
+
+  const interaction = {
+    id: `int_${Date.now()}`,
+    channel: channel || 'Note',
+    note: note.trim(),
+    author: req.user.name,
+    authorId: req.user._id,
+    date: new Date(),
+    outcome: outcome || 'neutral',
+  };
+
+  brandLead.interactions.push(interaction);
+  brandLead.lastInteractionAt = new Date();
+  brandLead.interactionCount = brandLead.interactions.length;
+  await brandLead.save();
+
+  sendSuccess(res, 201, { interaction, interactions: brandLead.interactions }, 'Interaction added');
+});
+
+// Phase 13: Delete interaction from brand lead
+export const deleteBrandLeadInteraction = asyncHandler(async (req, res) => {
+  const brandLead = await BrandLead.findById(req.params.id);
+  if (!brandLead) throw new ApiError(404, 'Brand lead not found', 'BRAND_LEAD_NOT_FOUND');
+
+  const idx = brandLead.interactions.findIndex(
+    i => i.id === req.params.interactionId || i._id?.toString() === req.params.interactionId
+  );
+  if (idx === -1) throw new ApiError(404, 'Interaction not found', 'NOT_FOUND');
+
+  brandLead.interactions.splice(idx, 1);
+  brandLead.interactionCount = brandLead.interactions.length;
+  await brandLead.save();
+
+  sendSuccess(res, 200, { interactions: brandLead.interactions }, 'Interaction deleted');
+});
+
+// Phase 26: Convert lead to campaign
+export const convertBrandLead = asyncHandler(async (req, res) => {
+  const brandLead = await BrandLead.findById(req.params.id);
+  if (!brandLead) throw new ApiError(404, 'Brand lead not found', 'BRAND_LEAD_NOT_FOUND');
+
+  if (brandLead.status === 'lost') throw new ApiError(400, 'Cannot convert a lost lead', 'INVALID_STATUS');
+  if (brandLead.status === 'converted') throw new ApiError(400, 'Lead is already converted', 'INVALID_STATUS');
+
+  const { campaignId, notes } = req.body;
+
+  brandLead.status = 'converted';
+  brandLead.convertedAt = new Date();
+  brandLead.convertedBy = req.user._id;
+  if (campaignId) brandLead.convertedCampaignId = campaignId;
+
+  // Add system interaction
+  brandLead.interactions.push({
+    id: `int_${Date.now()}`,
+    channel: 'Note',
+    note: notes ? `Converted to campaign. Notes: ${notes}` : 'Lead converted to campaign.',
+    author: req.user.name,
+    authorId: req.user._id,
+    date: new Date(),
+    outcome: 'positive',
+  });
+  brandLead.lastInteractionAt = new Date();
+  brandLead.interactionCount = brandLead.interactions.length;
+
+  await brandLead.save();
+
+  await createAuditLog({
+    req,
+    user: req.user,
+    action: 'convert_brand_lead',
+    module: 'brand_leads',
+    recordId: brandLead._id,
+    details: { campaignId, notes },
+  });
+
+  // Re-fetch with populated fields for response
+  const populated = await BrandLead.findById(brandLead._id)
+    .populate('assignedTo', 'name email role')
+    .populate('convertedCampaignId', 'campaignName brandName');
+
+  sendSuccess(res, 200, { brandLead: populated }, 'Lead converted successfully');
+});
+
+// Phase 26: Mark lead as lost
+export const loseBrandLead = asyncHandler(async (req, res) => {
+  const brandLead = await BrandLead.findById(req.params.id);
+  if (!brandLead) throw new ApiError(404, 'Brand lead not found', 'BRAND_LEAD_NOT_FOUND');
+
+  if (brandLead.status === 'converted') throw new ApiError(400, 'Cannot lose a converted lead', 'INVALID_STATUS');
+  if (brandLead.status === 'lost') throw new ApiError(400, 'Lead is already marked as lost', 'INVALID_STATUS');
+
+  const { reason, notes } = req.body;
+  if (!reason?.trim()) throw new ApiError(400, 'Reason is required', 'VALIDATION_ERROR');
+
+  brandLead.status = 'lost';
+  brandLead.lostReason = reason.trim();
+  brandLead.lostAt = new Date();
+  brandLead.lostBy = req.user._id;
+  // Schedule re-engage in 90 days
+  brandLead.followUpDate = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+
+  // Add system interaction
+  brandLead.interactions.push({
+    id: `int_${Date.now()}`,
+    channel: 'Note',
+    note: notes ? `Marked as lost. Reason: ${reason}. Notes: ${notes}` : `Marked as lost. Reason: ${reason}`,
+    author: req.user.name,
+    authorId: req.user._id,
+    date: new Date(),
+    outcome: 'negative',
+  });
+  brandLead.lastInteractionAt = new Date();
+  brandLead.interactionCount = brandLead.interactions.length;
+
+  await brandLead.save();
+
+  await createAuditLog({
+    req,
+    user: req.user,
+    action: 'lose_brand_lead',
+    module: 'brand_leads',
+    recordId: brandLead._id,
+    details: { reason, notes },
+  });
+
+  sendSuccess(res, 200, { brandLead }, 'Lead marked as lost');
+});
+
+// Phase 6: Portfolio Endpoints
+export const addPortfolioLink = asyncHandler(async (req, res) => {
+  const creator = await Creator.findById(req.params.id);
+  if (!creator) throw new ApiError(404, 'Creator not found', 'CREATOR_NOT_FOUND');
+
+  const { url, title, thumbnail, platform } = req.body;
+  if (!url) throw new ApiError(400, 'URL is required', 'VALIDATION_ERROR');
+
+  creator.portfolioLinks.push({ url, title, thumbnail, platform, addedAt: new Date() });
+  await creator.save();
+
+  sendSuccess(res, 201, { portfolioLinks: creator.portfolioLinks }, 'Portfolio link added');
+});
+
+export const deletePortfolioLink = asyncHandler(async (req, res) => {
+  const creator = await Creator.findById(req.params.id);
+  if (!creator) throw new ApiError(404, 'Creator not found', 'CREATOR_NOT_FOUND');
+
+  const linkIndex = creator.portfolioLinks.findIndex(
+    (l) => l._id.toString() === req.params.portfolioId
+  );
+  if (linkIndex === -1) throw new ApiError(404, 'Portfolio link not found', 'NOT_FOUND');
+
+  creator.portfolioLinks.splice(linkIndex, 1);
+  await creator.save();
+
+  sendSuccess(res, 200, { portfolioLinks: creator.portfolioLinks }, 'Portfolio link removed');
+});
+
+export const addCollaboration = asyncHandler(async (req, res) => {
+  const creator = await Creator.findById(req.params.id);
+  if (!creator) throw new ApiError(404, 'Creator not found', 'CREATOR_NOT_FOUND');
+
+  const { brand, campaign, date, description } = req.body;
+  if (!brand) throw new ApiError(400, 'Brand name is required', 'VALIDATION_ERROR');
+
+  creator.pastCollaborations.push({ brand, campaign, date, description });
+  await creator.save();
+
+  sendSuccess(res, 201, { pastCollaborations: creator.pastCollaborations }, 'Collaboration added');
+});
+
+export const deleteCollaboration = asyncHandler(async (req, res) => {
+  const creator = await Creator.findById(req.params.id);
+  if (!creator) throw new ApiError(404, 'Creator not found', 'CREATOR_NOT_FOUND');
+
+  const collabIndex = creator.pastCollaborations.findIndex(
+    (c) => c._id.toString() === req.params.collabId
+  );
+  if (collabIndex === -1) throw new ApiError(404, 'Collaboration not found', 'NOT_FOUND');
+
+  creator.pastCollaborations.splice(collabIndex, 1);
+  await creator.save();
+
+  sendSuccess(res, 200, { pastCollaborations: creator.pastCollaborations }, 'Collaboration removed');
 });
 
 export const getDashboard = asyncHandler(async (req, res) => {

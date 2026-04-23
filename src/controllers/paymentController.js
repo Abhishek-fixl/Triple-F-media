@@ -231,12 +231,25 @@ export const processPayments = asyncHandler(async (req, res) => {
         campaignCreatorId: assignment._id,
         creatorId: creator._id,
         creatorName: creator.name,
-        campaignName: campaign.campaignName,
+        campaignName: campaign?.campaignName || '',
         amount: assignment.amount,
         upiId: creator.upiId,
         status: 'processing',
         tdsDeducted,
         netAmount,
+        // Phase 14: Finance fields
+        campaignId: campaign?._id,
+        niche: creator.niche,
+        platform: creator.platform,
+        brand: campaign?.brandName,
+        campaignType: campaign?.type,
+        tdsApplicable: true,
+        tdsPercentage: 10,
+        approvalStatus: 'pending',
+        paymentMethod: creator.paymentMethod === 'bank' ? 'Bank Transfer' : 'UPI',
+        bankAccount: creator.paymentMethod === 'bank'
+          ? `${creator.bankAccount?.bankName} ****${creator.bankAccount?.accountNumber?.slice(-4)}`
+          : null,
       });
     }
 
@@ -270,7 +283,11 @@ export const processPayments = asyncHandler(async (req, res) => {
 export const bulkProcessPayments = processPayments;
 
 export const getPayment = asyncHandler(async (req, res) => {
-  const payment = await Payment.findById(req.params.id);
+  const payment = await Payment.findById(req.params.id)
+    .populate('creatorId', 'name handle platform niche upiId bankAccount paymentMethod')
+    .populate('campaignId', 'campaignName brandName type')
+    .populate('approvedBy', 'name email role')
+    .populate('rejectedBy', 'name email role');
   if (!payment) throw new ApiError(404, 'Payment not found', 'PAYMENT_NOT_FOUND');
   sendSuccess(res, 200, { payment });
 });

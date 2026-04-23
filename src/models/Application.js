@@ -42,6 +42,11 @@ const applicationSchema = new mongoose.Schema(
       index: true,
     },
     referral: { type: String, trim: true },
+    // Phase 2: New fields for enhanced creator profile
+    bio: { type: String, trim: true, maxlength: 500 },
+    contentType: { type: String, trim: true },  // e.g., "Video Series, Technical Analysis"
+    avgLikes: { type: String, trim: true },      // e.g., "12K"
+    avgComments: { type: String, trim: true },    // e.g., "850"
     status: { type: String, enum: APPLICATION_STATUSES, default: 'pending', index: true },
     reviewedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     reviewedAt: Date,
